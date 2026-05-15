@@ -4,7 +4,7 @@
 
 ## Data Source
 
-Data was scraped from [](netkeiba.com), an official Japan horse racing website. This was done with a Python script that was ran in the background with a total scraping time of around 25 hours to complete. This resulted in a single output file: `keiba25.db`, a type of relational database containing five tables. More information can be found at my [Keiba Scrape Repository]().
+Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing website. This was done with a Python script that was ran in the background with a total scraping time of around 25 hours to complete. This resulted in a single output file: `keiba25.db`, a type of relational database containing five tables. More information can be found at my [Keiba Scrape Repository]().
 
 ## Contents
 
@@ -23,7 +23,7 @@ Data was scraped from [](netkeiba.com), an official Japan horse racing website. 
     - Main database used for analysis. Created by importing processed csvs into SQL tables and exporting to .duckdb file in `data_import.sql`.
 
 #### Main Schema
-![](images/horse_schema.png)
+![Museum Mile after winning the 2025 Satsuki Sho.](images/horse_schema.png)
 
 ### SQL
 
