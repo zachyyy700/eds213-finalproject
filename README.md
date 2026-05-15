@@ -1,6 +1,6 @@
 # EDS 213: Databases & Data Management - Final Project
 
-![](images/museummile.jpg)
+![Museum Mile after winning the 2025 Satsuki Sho.](images/museummile.jpg)
 
 ## Data Source
 
@@ -24,7 +24,6 @@ Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing w
 
 #### Main Schema
 ![](images/horse_schema.png)
-Museum Mile after winning the 2025 Satsuki Sho.
 
 ### SQL
 
