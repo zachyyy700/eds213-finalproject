@@ -23,7 +23,8 @@ Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing w
     - Main database used for analysis. Created by importing processed csvs into SQL tables and exporting to .duckdb file in `data_import.sql`.
 
 #### Main Schema
-![Museum Mile after winning the 2025 Satsuki Sho.](images/horse_schema.png)
+![](images/horse_schema.png)
+Museum Mile after winning the 2025 Satsuki Sho.
 
 ### SQL
 
