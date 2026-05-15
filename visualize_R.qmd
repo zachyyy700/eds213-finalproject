@@ -1,0 +1,290 @@
+---
+title: "Duck DB Visualization Quarto"
+---
+
+```{r}
+library(DBI)
+library(duckdb)
+library(dbplyr)
+library(tidyverse)
+library(ggraph)
+library(igraph)
+library(ggtext)
+library(showtext)
+
+font_add_google("Nunito")
+font_add_google("Kiwi Maru", "jp")
+
+# create database connection
+conn <- dbConnect(duckdb(), dbdir = 'horses.duckdb')
+dbListTables(conn)
+```
+
+```{r}
+# query all tables into dfs
+lineage <- dbGetQuery(conn, "SELECT * FROM Lineage")
+races <- dbGetQuery(conn, "SELECT * FROM Races")
+results <- dbGetQuery(conn, "SELECT * FROM Results")
+```
+
+# Start Here: Quick Stats
+
+What is my data and what are some initial, summary stats?
+
+```{r}
+lin_long <- lineage |> 
+    pivot_longer(cols = everything(),
+    names_to = c('role', '.value'),
+    names_sep = "_(?=id|name)")
+```
+
+```{r}
+get_role_counts <- function(long_df, role_in){
+    long_df |> filter(role %in% role_in) |> pull(id) |> unique() |> length()
+}
+```
+
+```{r}
+# get counts
+racer_count <- get_role_counts(lin_long, 'horse')
+parents_count <- get_role_counts(lin_long, c('father', 'mother'))
+
+father_count <- get_role_counts(lin_long, 'father')
+mother_count <- get_role_counts(lin_long, 'mother')
+
+# sum of these counts overcounts, due to shared grandparents
+f_father_count <- get_role_counts(lin_long, 'f_father')
+m_father_count <- get_role_counts(lin_long, 'm_father')
+f_mother_count <- get_role_counts(lin_long, 'f_mother')
+m_mother_count <- get_role_counts(lin_long, 'm_mother')
+
+grandparent_count <- get_role_counts(lin_long, c('f_father', 'm_father', 'f_mother', 'm_mother'))
+
+track_count <- unique(races$venue) |> length()
+```
+
+# Plot 1: Generation Bubble Chart
+
+```{r}
+bubble_gen <- tribble(
+    ~role, ~generation, ~count, ~x_pos, ~gen_gender,
+    'horse', 0, racer_count, 0, 'racer',
+    'father', 1, father_count, -2, 'male',
+    'mother', 1, mother_count, 2, 'female',
+    'f_father', 2, f_father_count, -3, 'male',
+    'f_mother', 2, f_mother_count, -1, 'female',
+    'm_father', 2, m_father_count, 1, 'male',
+    'm_mother', 2, m_mother_count, 3, 'female'
+)
+```
+
+```{r}
+showtext_auto(enable = TRUE)
+bubble_gen |> 
+    ggplot() +
+    geom_point(aes(x = x_pos, y = generation, size = count, color = gen_gender)) +
+    scale_color_manual(values = c(
+        'racer' = '#ddc585', 
+        'male' = '#8CA0D7', 
+        'female' = '#9D79BC')) +
+    
+    scale_size(range = c(10, 80)) +
+    ylim(-1, 3) +
+    xlim(-4, 4) +
+    labs(title = "Generation Counts: JRA 2025") +
+
+    ggnewscale::new_scale("size") +
+    geom_text(aes(label = scales::comma(count), x = x_pos, y = generation, size = count), color = 'white') +
+    geom_text(aes(label = role, x = x_pos, y = generation + 0.4), color = 'black') +
+    scale_size_continuous(range = c(3, 12)) +
+    theme_void(base_family = 'Nunito') +
+    theme(
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 28))
+```
+
+```{r}
+# save plot 1
+ggsave(here::here("viz_output", 
+paste0("bubble", format(Sys.time(), "%Y%m%d_%H%M%S"), ".pdf")), width = 8, height = 8)
+```
+
+# Plot 1.5: G1 Generation Bubble Chart
+
+```{r}
+g1_lin <- dbGetQuery(conn, "
+    SELECT race_name, horse_id, horse_name, father_id, father_name, mother_id, mother_name, f_father_id, f_father_name, f_mother_id, f_mother_name, m_father_id, m_father_name, m_mother_id, m_mother_name 
+    FROM Races
+    JOIN Results USING (race_id)
+    JOIN Lineage USING (horse_id)
+    WHERE race_name LIKE '%(GI)'")
+
+g1_lin_long <- g1_lin |> 
+    pivot_longer(cols = everything(),
+    names_to = c('role', '.value'),
+    names_sep = "_(?=id|name)")
+
+racer_count <- get_role_counts(g1_lin_long, 'horse')
+
+father_count <- get_role_counts(g1_lin_long, 'father')
+mother_count <- get_role_counts(g1_lin_long, 'mother')
+
+f_father_count <- get_role_counts(g1_lin_long, 'f_father')
+f_mother_count <- get_role_counts(g1_lin_long, 'f_mother')
+m_father_count <- get_role_counts(g1_lin_long, 'm_father')
+m_mother_count <- get_role_counts(g1_lin_long, 'm_mother')
+```
+
+```{r}
+g1_bubble_gen <- tribble(
+    ~role, ~generation, ~count, ~x_pos, ~gen_gender,
+    'horse', 0, racer_count, 0, 'racer',
+    'father', 1, father_count, -2, 'male',
+    'mother', 1, mother_count, 2, 'female',
+    'f_father', 2, f_father_count, -3, 'male',
+    'f_mother', 2, f_mother_count, -1, 'female',
+    'm_father', 2, m_father_count, 1, 'male',
+    'm_mother', 2, m_mother_count, 3, 'female'
+)
+```
+
+```{r}
+showtext_auto(enable = TRUE)
+g1_bubble_gen |> 
+    ggplot() +
+    geom_point(aes(x = x_pos, y = generation, size = count, color = gen_gender)) +
+    scale_color_manual(values = c(
+        'racer' = '#ddc585', 
+        'male' = '#8CA0D7', 
+        'female' = '#9D79BC')) +
+    
+    scale_size(range = c(10, 60)) +
+    ylim(-1, 3) +
+    xlim(-4, 4) +
+    labs(title = "G1 Only Generation Counts: JRA 2025") +
+
+    ggnewscale::new_scale("size") +
+    geom_text(aes(label = scales::comma(count), x = x_pos, y = generation, size = count), color = 'white') +
+    geom_text(aes(label = role, x = x_pos, y = generation + 0.4), color = 'black') +
+    scale_size_continuous(range = c(3, 12)) +
+    theme_void(base_family = 'Nunito') +
+    theme(
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5, size = 28))
+```
+
+```{r}
+# save plot 1.5
+ggsave(here::here("viz_output", 
+paste0("g1bubble", format(Sys.time(), "%Y%m%d_%H%M%S"), ".pdf")), width = 8, height = 8)
+```
+
+# Plot 2: Grandsire Performace
+
+```{r}
+g1_sire_performance <- dbGetQuery(conn, "
+    SELECT 
+        l.father_id,
+        l.father_name,
+        COUNT(*) AS starts,
+        SUM(CASE WHEN r.finish_pos = 1 THEN 1 ELSE 0 END) AS wins,
+        SUM(CASE WHEN r.finish_pos <= 3 THEN 1 ELSE 0 END) AS placings,
+        ROUND(100.0 * SUM(CASE WHEN r.finish_pos = 1 THEN 1 ELSE 0 END) / COUNT(*), 1) AS win_pct
+    FROM Races ra
+    JOIN Results r USING (race_id)
+    JOIN Lineage l USING (horse_id)
+    WHERE ra.race_name LIKE '%(GI)'
+    GROUP BY l.father_id, l.father_name
+    HAVING COUNT(*) >= 3  -- filter out one-off runners
+    ORDER BY win_pct DESC
+")
+
+g1_gsire_performance <- dbGetQuery(conn, "
+    SELECT 
+        l.f_father_id,
+        l.f_father_name,
+        COUNT(*) AS starts,
+        SUM(CASE WHEN r.finish_pos = 1 THEN 1 ELSE 0 END) AS wins,
+        SUM(CASE WHEN r.finish_pos <= 3 THEN 1 ELSE 0 END) AS placings,
+        ROUND(100.0 * SUM(CASE WHEN r.finish_pos = 1 THEN 1 ELSE 0 END) / COUNT(*), 1) AS win_pct
+    FROM Races ra
+    JOIN Results r USING (race_id)
+    JOIN Lineage l USING (horse_id)
+    WHERE ra.race_name LIKE '%(GI)'
+    GROUP BY l.f_father_id, l.f_father_name
+    HAVING COUNT(*) >= 3  -- filter out one-off runners
+    ORDER BY win_pct DESC
+")
+```
+
+```{r}
+g1_gsire_performance |>
+  mutate(place_only = placings - wins) |>
+  ggplot(aes(x = starts, y = win_pct)) +
+  geom_point(aes(size = wins), alpha = 0.8) +
+  geom_label(
+    aes(label = f_father_name, x = starts + 1, y = win_pct + 0.5),
+    size = 3, family = 'jp'
+  ) +
+  scale_size_continuous(range = c(3, 12)) +
+  xlim(0, 100) +
+  labs(
+    title = "G1 Performance by Grandsire (2025)",
+    x = "G1 Runners", y = "Win %",
+    size = "Wins"
+  ) +
+  theme_minimal() +
+  theme(legend.position = 'none', plot.title = element_text(family = 'Nunito', size = 28))
+```
+
+```{r}
+# save plot 2
+ggsave(here::here("viz_output", 
+paste0("gsire", format(Sys.time(), "%Y%m%d_%H%M%S"), ".pdf")), width = 10, height = 6)
+```
+
+# Plot 3: Deep Impact Tree
+
+```{r}
+g1_horses <- dbGetQuery(conn,"
+    SELECT DISTINCT r.horse_id, l.father_id, l.mother_id, l.f_father_id, l.f_mother_id, l.m_father_id, l.m_mother_id
+    FROM Results r
+    JOIN Races ra ON r.race_id = ra.race_id
+    JOIN Lineage l ON r.horse_id = l.horse_id
+    WHERE ra.race_name LIKE '%(GI)'
+")
+
+# deep impact G1 tree
+di_tree <- g1_horses |> 
+    filter(f_father_id == "2002100816")
+```
+
+```{r}
+# structure data for ggraph networked plot
+d1_di <- di_tree |> select(f_father_id, father_id) |> rename(from = f_father_id, to = father_id)
+
+d2_di <- di_tree |> select(father_id, horse_id) |> rename(from = father_id, to = horse_id)
+edges  <- rbind(d1_di, d2_di)
+
+name <- unique(c(as.character(edges$from), as.character(edges$to)))
+vertices <- data.frame(name = name)
+
+mygraph <- graph_from_data_frame(edges, vertices = vertices)
+```
+
+```{r}
+# Plot
+ggraph(mygraph, layout = "tree") +
+  geom_edge_diagonal(arrow = arrow(length = unit(0.01, "mm"))) +
+  geom_node_label(aes(label = name)) +
+  theme_graph()
+```
+
+```{r}
+ggsave(here::here("viz_output", 
+paste0("ditree", format(Sys.time(), "%Y%m%d_%H%M%S"), ".pdf")), width = 40, height = 6)
+```
+
+```{r}
+dbDisconnect(conn, shutdown = TRUE)
+```
