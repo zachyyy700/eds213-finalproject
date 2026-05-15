@@ -1,6 +1,9 @@
 # EDS 213: Databases & Data Management - Final Project
 
-![Museum Mile after winning the 2025 Satsuki Sho.](images/museummile.jpg)
+<figure>
+  <img src="images/museummile.jpg" alt="Museum Mile">
+  <figcaption>Museum Mile after winning the 2025 Satsuki Sho.</figcaption>
+</figure>
 
 ## Data Source
 
