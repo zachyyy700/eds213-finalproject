@@ -39,3 +39,7 @@ Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing w
 1. `visualize_R.qmd`, connects to duckdb database using `duckdb` SQL connection with `dbplyr` package and contains code for final visualizations. Plots were saved as a vector format (.pdf) to be loaded into Affinity designer for further processing.
 
 2. `viz_output/`, folder containing `ggplot` visualization outputs.
+
+## Author
+
+Zach Loo
