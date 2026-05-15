@@ -44,6 +44,13 @@ Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing w
 
 2. `viz_output/`, folder containing `ggplot` visualization outputs.
 
+### Repoducibility
+
+Since both R and Python was used for this project, each of their respective requirements to reproduce this analysis was also included in this repository.
+
+1. Python: `environment.yml`
+2. R: `requirements.txt`
+
 ## Acknowledgements
 
 - [keibascraper](https://github.com/new-village/KeibaScraper) by [@new-village](https://github.com/new-village) — licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
