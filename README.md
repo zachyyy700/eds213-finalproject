@@ -5,9 +5,13 @@
   <figcaption>Museum Mile after winning the 2025 Satsuki Sho.</figcaption>
 </figure>
 
+# About
+
+This repository contains the final project materials for the course EDS 213 - Databases & Data Management at UCSB's Masters of Environmental Data SCience. The project's main goal is to practice good database management and database querying to produce visualizations.
+
 ## Data Source
 
-Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing website. This was done with a Python script that was ran in the background with a total scraping time of around 25 hours to complete. This resulted in a single output file: `keiba25.db`, a type of relational database containing five tables. More information can be found at my [Keiba Scrape Repository]().
+Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing website. This was done with a Python script that was ran in the background with a total scraping time of around 25 hours to complete. This resulted in a single output file: `keiba25.db`, a type of relational database containing five tables. More information can be found at my [Keiba Scrape Repository](https://github.com/zachyyy700/keiba-scrape-25).
 
 ## Contents
 
