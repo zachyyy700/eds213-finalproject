@@ -7,7 +7,7 @@
 
 # About
 
-This repository contains the final project materials for the course EDS 213 - Databases & Data Management at UCSB's Masters of Environmental Data SCience. The project's main goal is to practice good database management and database querying to produce visualizations.
+This repository contains the final project materials for the course EDS 213 - Databases & Data Management at UCSB's Masters of Environmental Data Science. The project's main goal is to practice good database management and database querying to produce visualizations.
 
 ## Data Source
 
@@ -43,6 +43,10 @@ Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing w
 1. `visualize_R.qmd`, connects to duckdb database using `duckdb` SQL connection with `dbplyr` package and contains code for final visualizations. Plots were saved as a vector format (.pdf) to be loaded into Affinity designer for further processing.
 
 2. `viz_output/`, folder containing `ggplot` visualization outputs.
+
+## Acknowledgements
+
+- [keibascraper](https://github.com/new-village/KeibaScraper) by [@new-village](https://github.com/new-village) — licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
 
 ## Author
 
