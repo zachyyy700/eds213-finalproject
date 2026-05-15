@@ -44,7 +44,7 @@ Data was scraped from [netkeiba](netkeiba.com), an official Japan horse racing w
 
 2. `viz_output/`, folder containing `ggplot` visualization outputs.
 
-### Repoducibility
+### Reproducibility
 
 Since both R and Python was used for this project, each of their respective requirements to reproduce this analysis was also included in this repository.
 
